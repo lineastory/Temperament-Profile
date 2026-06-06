@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>기질 프로파일 · 알음다움 </title>
+<title>기질 프로파일 · 리네아스토리</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,380;0,9..144,500;1,9..144,400&display=swap" rel="stylesheet">
@@ -267,7 +267,7 @@ function intro(){
    </div>
    <button class="btn solid reveal" id="start">검사 시작하기</button>
    <button class="mini" id="demo">예시 결과 미리보기</button>
-   <div class="anchor reveal"><div class="av">조</div><div class="nm">예술심리치료사 조세화<small>리네아스토리 · 알음다움</small></div></div>
+   <div class="anchor reveal"><div class="av">알</div><div class="nm">(주)알음다움<small>EAP 전문기업</small></div></div>
    <p class="foot reveal">표준화 규준이 없는 자기이해 도구입니다. 결과는 우열이 아니라 ‘나를 이해하는 출발점’으로 읽어 주세요.</p>`;
   $("#start").onclick=()=>{queue=buildQueue();answers={};qi=0;quiz();};
   $("#demo").onclick=()=>{demoFill();result();};
@@ -401,7 +401,7 @@ function renderDims(meta){
   const box=$("#p-dims");
   const tabs=ORDER.map(d=>{const D=DIM[d];const on=d===dimCur;return `<button data-d="${d}" class="${on?'on':''}" style="${on?'background:'+D.color+';color:#fff':'color:'+D.color}">${D.name}</button>`;}).join("");
   box.innerHTML=`<div class="dimhint">👆 네 척도를 눌러 자세히 보기</div><div class="dimtabs">${tabs}</div><div id="dimbody"></div>
-    <div class="disc" style="margin-top:24px">중립점(36점) 기준의 상대 결과 · 표준화 규준이 없는 자기이해 도구입니다.<br>예술심리치료사 조세화 · 리네아스토리</div>
+    <div class="disc" style="margin-top:24px">중립점(36점) 기준의 상대 결과 · 표준화 규준이 없는 자기이해 도구입니다.<br>EAP전문기업 (주)알음다움</div>
     <div class="btns"><button class="btn ghost" id="saveImg">이미지로 저장</button><button class="btn accent" id="savePdf">PDF로 저장</button></div>`;
   box.querySelectorAll(".dimtabs button").forEach(b=>b.onclick=()=>{dimCur=b.dataset.d;renderDims(meta);});
   $("#saveImg").onclick=saveImage;
