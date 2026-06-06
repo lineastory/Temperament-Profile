@@ -399,12 +399,11 @@ function renderDims(meta){
 
 function rptUnits(){
   const {meta,ranked,combo}=lastResult, U=[];
-  U.push(`<div class="u"><div class="usec">한눈에 보기 · 뚜렷한 순서</div><div class="rank">${summaryRowsHTML(ranked)}</div>${SUMMARY_NOTE}</div>`);
-  U.push(`<div class="u"><div class="usec">나의 대표 서사 · 핵심 조합</div>${cardHTML(combo)}</div>`);
+  U.push({type:"single", html:`<div class="u"><div class="usec">한눈에 보기 · 뚜렷한 순서</div><div class="rank">${summaryRowsHTML(ranked)}</div>${SUMMARY_NOTE}</div>`});
+  U.push({type:"single", html:`<div class="u"><div class="usec">나의 대표 서사 · 핵심 조합</div>${cardHTML(combo)}</div>`});
   ORDER.forEach((d,i)=>{
     const m=meta.find(x=>x.d===d), pr=dimUnitParts(d,m);
-    U.push(`<div class="u">${i===0?'<div class="usec">척도별 자세히</div>':''}${pr[0]}</div>`);
-    U.push(`<div class="u">${pr[1]}</div>`);
+    U.push({type:"group", a:`<div class="u">${i===0?'<div class="usec">척도별 자세히</div>':''}${pr[0]}</div>`, b:`<div class="u">${pr[1]}</div>`});
   });
   return U;
 }
@@ -438,27 +437,50 @@ async function exportPages(mode){
   if(typeof html2canvas==="undefined"){alert("저장 기능(html2canvas)을 불러오지 못했어요. 인터넷 연결을 확인하고, 채팅 미리보기가 아니라 실제 사이트 주소에서 다시 시도해 주세요.");return;}
   if(mode==="pdf" && (!window.jspdf || !window.jspdf.jsPDF)){alert("PDF 기능(jsPDF)을 불러오지 못했어요. 인터넷 연결을 확인하고 실제 사이트 주소에서 다시 시도해 주세요.");return;}
   overlay(true, mode==="pdf"?"PDF 만드는 중…":"이미지 만드는 중…");
-  await wait(60);
   try{
-    const measure=document.getElementById("measure"); measure.innerHTML=rptUnits().join("");
-    await wait(40);
-    const CH=860, items=[...measure.children]; const pages=[]; let cur=[],h=0;
-    items.forEach(el=>{const eh=el.offsetHeight+16; if(h+eh>CH&&cur.length){pages.push(cur);cur=[];h=0;} cur.push(el.outerHTML); h+=eh;});
-    if(cur.length)pages.push(cur);
-    const N=pages.length, host=document.getElementById("pages");
-    host.innerHTML=pages.map((u,i)=>`<div class="page"><div class="page-h"><span class="ph-l">기질 프로파일</span><span class="ph-r">TEMPERAMENT PROFILE</span></div><div class="page-c">${u.join("")}</div><div class="page-f"><span>기질 프로파일 결과 · 자기이해 리포트</span><span>${i+1} / ${N}</span></div></div>`).join("");
+    if(document.fonts&&document.fonts.ready){try{await document.fonts.ready;}catch(e){}}
+    await wait(60);
+    const host=document.getElementById("pages"); host.innerHTML="";
+    const HDR='<div class="page-h"><span class="ph-l">기질 프로파일</span><span class="ph-r">TEMPERAMENT PROFILE</span></div>';
+    const FTR='<div class="page-f"><span>기질 프로파일 결과 · 자기이해 리포트</span><span class="pn"></span></div>';
+    function newPage(){const p=document.createElement("div");p.className="page";p.innerHTML=HDR+'<div class="page-c"></div>'+FTR;host.appendChild(p);return p.querySelector(".page-c");}
+    const mk=h=>{const t=document.createElement("div");t.innerHTML=h;return t.firstElementChild;};
+    const over=c=>c.scrollHeight>c.clientHeight+1;
+    let cn=newPage();
+    rptUnits().forEach(item=>{
+      if(item.type==="single"){
+        const n=mk(item.html); cn.appendChild(n);
+        if(over(cn)&&cn.children.length>1){ cn.removeChild(n); cn=newPage(); cn.appendChild(n); }
+      } else {
+        const na=mk(item.a), nb=mk(item.b);
+        cn.appendChild(na); cn.appendChild(nb);
+        if(over(cn)){
+          cn.removeChild(na); cn.removeChild(nb);
+          if(cn.children.length>0){ cn=newPage(); }
+          cn.appendChild(na); cn.appendChild(nb);
+          if(over(cn)){ cn.removeChild(nb); cn=newPage(); cn.appendChild(nb); }
+        }
+      }
+    });
+    const pels=[...host.children], N=pels.length;
+    pels.forEach((p,i)=>{const pn=p.querySelector(".pn");if(pn)pn.textContent=(i+1)+" / "+N;});
     await wait(80);
-    const pels=[...host.children]; let pdf=null;
+    let pdf=null;
     for(let i=0;i<pels.length;i++){
-      const c=await html2canvas(pels[i],{scale:2,backgroundColor:"#ffffff"});
+      const c=await html2canvas(pels[i],{scale:2,backgroundColor:"#ffffff",width:794,height:1123,windowWidth:794});
       if(mode==="png"){ await dlCanvas(c,"기질프로파일_"+(i+1)+".png"); await wait(400); }
-      else{ const J=window.jspdf.jsPDF; if(!pdf)pdf=new J("p","mm","a4"); if(i>0)pdf.addPage(); pdf.addImage(c.toDataURL("image/jpeg",0.92),"JPEG",0,0,210,297); }
+      else{
+        const J=window.jspdf.jsPDF; if(!pdf)pdf=new J("p","mm","a4"); if(i>0)pdf.addPage();
+        const pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight();
+        let w=pw, h=c.height*pw/c.width; if(h>ph){ h=ph; w=c.width*ph/c.height; }
+        pdf.addImage(c.toDataURL("image/jpeg",0.92),"JPEG",(pw-w)/2,0,w,h);
+      }
     }
     if(mode==="pdf"&&pdf)pdf.save("기질프로파일.pdf");
-    host.innerHTML=""; measure.innerHTML="";
+    host.innerHTML="";
     overlay(false);
     if(mode==="png")alert(N+"장의 이미지를 저장했어요. 휴대폰은 ‘다운로드’ 폴더(또는 사파리 주소창의 다운로드 아이콘)를 확인해 주세요.");
-  }catch(e){ overlay(false); alert("저장 중 문제가 생겼어요: "+((e&&e.message)?e.message:e)); }
+  }catch(e){ overlay(false); var hp=document.getElementById("pages"); if(hp)hp.innerHTML=""; alert("저장 중 문제가 생겼어요: "+((e&&e.message)?e.message:e)); }
 }
 function saveImage(){ exportPages("png"); }
 function savePDF(){ exportPages("pdf"); }
