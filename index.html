@@ -179,6 +179,16 @@
   .page-c{flex:1;overflow:hidden;}
   .page-f{display:flex;justify-content:space-between;border-top:1px solid #ece7df;padding-top:8px;margin-top:12px;font-size:10px;color:#a9a39a;letter-spacing:.02em;}
   #ovl{position:fixed;inset:0;background:rgba(40,35,28,.55);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;z-index:9999;font-family:var(--sans);}
+  #imgmodal{position:fixed;inset:0;background:rgba(40,35,28,.6);z-index:10000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 12px;font-family:var(--sans);}
+  #imgmodal .im-wrap{background:#fff;border-radius:16px;max-width:560px;width:100%;padding:18px 16px 24px;box-shadow:0 12px 40px rgba(0,0,0,.25);}
+  #imgmodal .im-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  #imgmodal .im-title{font-size:17px;font-weight:700;color:#2B2A28;}
+  #imgmodal .im-close{border:0;background:#F0EBE6;color:#2B2A28;font-size:14px;font-weight:600;padding:8px 16px;border-radius:10px;cursor:pointer;font-family:var(--sans);}
+  #imgmodal .im-tip{background:#FBF6F2;border:1px solid #F0E2DA;border-radius:12px;padding:11px 13px;font-size:13px;line-height:1.6;color:#6B635B;margin-bottom:16px;}
+  #imgmodal .im-card{margin-bottom:22px;}
+  #imgmodal .im-no{font-size:13px;font-weight:600;color:#9A9088;margin-bottom:7px;}
+  #imgmodal .im-img{width:100%;height:auto;border:1px solid #ECE6E0;border-radius:8px;display:block;}
+  #imgmodal .im-dl{margin-top:9px;width:100%;border:0;background:#D9776A;color:#fff;font-size:15px;font-weight:600;padding:12px;border-radius:11px;cursor:pointer;font-family:var(--sans);}
 </style>
 </head>
 <body>
@@ -423,6 +433,20 @@ function overlay(on,msg){
   if(on){ if(!o){o=document.createElement("div");o.id="ovl";document.body.appendChild(o);} o.textContent=msg||"만드는 중…"; o.style.display="flex"; }
   else if(o){ o.style.display="none"; }
 }
+function showImageGallery(urls){
+  const old=document.getElementById("imgmodal"); if(old)old.remove();
+  const m=document.createElement("div"); m.id="imgmodal";
+  const head=`<div class="im-head"><div class="im-title">이미지 저장</div><button class="im-close" type="button">닫기</button></div>`;
+  const tip=`<div class="im-tip">📱 휴대폰은 아래 이미지를 <b>길게 눌러</b> ‘사진에 저장’을 선택하면 갤러리에 저장돼요.<br>💻 PC·일부 기기는 ‘이 페이지 저장’ 버튼으로 받을 수 있어요.</div>`;
+  const body=urls.map((u,i)=>`<div class="im-card"><div class="im-no">${i+1} / ${urls.length} 페이지</div><img src="${u}" alt="${i+1}페이지" class="im-img"><button class="im-dl" type="button" data-i="${i}">이 페이지 저장</button></div>`).join("");
+  m.innerHTML=`<div class="im-wrap">${head}${tip}<div class="im-list">${body}</div></div>`;
+  document.body.appendChild(m);
+  m.querySelector(".im-close").onclick=()=>m.remove();
+  m.addEventListener("click",e=>{ if(e.target===m)m.remove(); });
+  m.querySelectorAll(".im-dl").forEach(btn=>{
+    btn.onclick=()=>{ const i=+btn.dataset.i; const a=document.createElement("a"); a.href=urls[i]; a.download="기질프로파일_"+(i+1)+".png"; document.body.appendChild(a); a.click(); a.remove(); };
+  });
+}
 function dlCanvas(canvas,name){
   return new Promise(res=>{
     function viaURL(){ const a=document.createElement("a");a.href=canvas.toDataURL("image/png");a.download=name;document.body.appendChild(a);a.click();a.remove();res(); }
@@ -465,10 +489,10 @@ async function exportPages(mode){
     const pels=[...host.children], N=pels.length;
     pels.forEach((p,i)=>{const pn=p.querySelector(".pn");if(pn)pn.textContent=(i+1)+" / "+N;});
     await wait(80);
-    let pdf=null;
+    let pdf=null; const imgs=[];
     for(let i=0;i<pels.length;i++){
       const c=await html2canvas(pels[i],{scale:2,backgroundColor:"#ffffff",width:794,height:1123,windowWidth:794});
-      if(mode==="png"){ await dlCanvas(c,"기질프로파일_"+(i+1)+".png"); await wait(400); }
+      if(mode==="png"){ imgs.push(c.toDataURL("image/png")); }
       else{
         const J=window.jspdf.jsPDF; if(!pdf)pdf=new J("p","mm","a4"); if(i>0)pdf.addPage();
         const pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight();
@@ -479,6 +503,7 @@ async function exportPages(mode){
     if(mode==="pdf"&&pdf)pdf.save("기질프로파일.pdf");
     host.innerHTML="";
     overlay(false);
+    if(mode==="png") showImageGallery(imgs);
     if(mode==="png")alert(N+"장의 이미지를 저장했어요. 휴대폰은 ‘다운로드’ 폴더(또는 사파리 주소창의 다운로드 아이콘)를 확인해 주세요.");
   }catch(e){ overlay(false); var hp=document.getElementById("pages"); if(hp)hp.innerHTML=""; alert("저장 중 문제가 생겼어요: "+((e&&e.message)?e.message:e)); }
 }
