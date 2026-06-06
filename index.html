@@ -177,7 +177,9 @@
   .page-h .ph-l{font-size:16px;font-weight:700;color:#D9776A;letter-spacing:-.01em;}
   .page-h .ph-r{font-size:10.5px;color:#8a8178;letter-spacing:.16em;}
   .page-c{flex:1;overflow:hidden;}
-  .page-f{display:flex;justify-content:space-between;border-top:1px solid #ece7df;padding-top:8px;margin-top:12px;font-size:10px;color:#a9a39a;letter-spacing:.02em;}
+  .page-f{border-top:1px solid #ece7df;padding-top:8px;margin-top:12px;font-size:10px;color:#a9a39a;letter-spacing:.02em;}
+  .page-f .pf-row{display:flex;justify-content:space-between;}
+  .page-f .pf-cr{margin-top:4px;font-size:9px;color:#bdb6ac;letter-spacing:.04em;}
   #ovl{position:fixed;inset:0;background:rgba(40,35,28,.55);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;z-index:9999;font-family:var(--sans);}
   #imgmodal{position:fixed;inset:0;background:rgba(40,35,28,.6);z-index:10000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 12px;font-family:var(--sans);}
   #imgmodal .im-wrap{background:#fff;border-radius:16px;max-width:560px;width:100%;padding:18px 16px 24px;box-shadow:0 12px 40px rgba(0,0,0,.25);}
@@ -469,7 +471,7 @@ async function exportPages(mode){
     await wait(60);
     const host=document.getElementById("pages"); host.innerHTML="";
     const HDR='<div class="page-h"><span class="ph-l">기질 프로파일</span><span class="ph-r">TEMPERAMENT PROFILE</span></div>';
-    const FTR='<div class="page-f"><span>기질 프로파일 결과 · 자기이해 리포트</span><span class="pn"></span></div>';
+    const FTR='<div class="page-f"><div class="pf-row"><span>기질 프로파일 결과 · 자기이해 리포트</span><span class="pn"></span></div><div class="pf-cr">© 2026 (주)알음다움. All rights reserved.</div></div>';
     function newPage(){const p=document.createElement("div");p.className="page";p.innerHTML=HDR+'<div class="page-c"></div>'+FTR;host.appendChild(p);return p.querySelector(".page-c");}
     const mk=h=>{const t=document.createElement("div");t.innerHTML=h;return t.firstElementChild;};
     const over=c=>c.scrollHeight>c.clientHeight+1;
