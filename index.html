@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,380;0,9..144,500;1,9..144,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
     --coral:#D9776A; --coral-fill:#F7E4E0;
@@ -167,11 +168,24 @@
     #report .r-head,#report .r-foot{break-inside:avoid;}
     @page{size:A4;margin:14mm;}
   }
+  #measure{position:absolute;left:-99999px;top:0;width:698px;background:#fff;color:#2B2A28;font-family:var(--sans);}
+  #measure .u,.page .u{margin-bottom:8px;}
+  #measure .usec,.page .usec{font-size:12px;font-weight:700;color:#D9776A;letter-spacing:.02em;margin:4px 0 8px;}
+  #pages{position:absolute;left:-99999px;top:0;}
+  .page{width:794px;height:1123px;background:#fff;box-sizing:border-box;padding:40px 48px 28px;display:flex;flex-direction:column;color:#2B2A28;font-family:var(--sans);}
+  .page-h{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #D9776A;padding-bottom:8px;margin-bottom:14px;}
+  .page-h .ph-l{font-size:16px;font-weight:700;color:#D9776A;letter-spacing:-.01em;}
+  .page-h .ph-r{font-size:10.5px;color:#8a8178;letter-spacing:.16em;}
+  .page-c{flex:1;overflow:hidden;}
+  .page-f{display:flex;justify-content:space-between;border-top:1px solid #ece7df;padding-top:8px;margin-top:12px;font-size:10px;color:#a9a39a;letter-spacing:.02em;}
+  #ovl{position:fixed;inset:0;background:rgba(40,35,28,.55);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;z-index:9999;font-family:var(--sans);}
 </style>
 </head>
 <body>
 <div class="app"><div class="pad" id="root"></div></div>
 <div id="report"></div>
+<div id="measure"></div>
+<div id="pages"></div>
 
 <script>
 /* ===================== DATA ===================== */
@@ -383,28 +397,71 @@ function renderDims(meta){
   $("#dimbody").innerHTML=dimCardHTML(dimCur,m);
 }
 
-function buildReport(){
-  const {meta,ranked,combo}=lastResult;
-  const dims=ORDER.map(d=>`<div class="rep-block">${dimCardHTML(d,meta.find(x=>x.d===d))}</div>`).join("");
-  document.getElementById("report").innerHTML=`
-    <div class="r-head"><div class="r-kicker">TEMPERAMENT PROFILE</div><div class="r-title">기질 프로파일 결과</div></div>
-    <div class="r-sec">한눈에 보기 · 뚜렷한 순서</div>
-    <div class="rep-block"><div class="rank">${summaryRowsHTML(ranked)}</div>${SUMMARY_NOTE}</div>
-    <div class="r-sec">나의 대표 서사 · 핵심 조합</div>
-    <div class="rep-block">${cardHTML(combo)}</div>
-    <div class="r-sec">척도별 자세히</div>
-    ${dims}
-    <div class="r-foot"><div class="r-foot-name">기질 프로파일</div><div class="r-foot-note">중립점(36점) 기준의 상대 결과입니다. 표준화 규준이 없는 자기이해 도구로, 우열이 아니라 나를 이해하는 출발점으로 읽어 주세요.</div></div>`;
+function rptUnits(){
+  const {meta,ranked,combo}=lastResult, U=[];
+  U.push(`<div class="u"><div class="usec">한눈에 보기 · 뚜렷한 순서</div><div class="rank">${summaryRowsHTML(ranked)}</div>${SUMMARY_NOTE}</div>`);
+  U.push(`<div class="u"><div class="usec">나의 대표 서사 · 핵심 조합</div>${cardHTML(combo)}</div>`);
+  ORDER.forEach((d,i)=>{
+    const m=meta.find(x=>x.d===d), pr=dimUnitParts(d,m);
+    U.push(`<div class="u">${i===0?'<div class="usec">척도별 자세히</div>':''}${pr[0]}</div>`);
+    U.push(`<div class="u">${pr[1]}</div>`);
+  });
+  return U;
 }
-function saveImage(){
+function dimUnitParts(d,m){
+  const D=DIM[d],k=lvKind(m.score),it=INTERP[d],data=it[k];
+  const lens=data.lens.map(l=>`<div class="ln"><div class="t">${l[0]}</div><div class="x">${l[1]}</div></div>`).join("");
+  const extra=k!=="mid"?`<div class="row2"><b>이런 환경에서 잘 지내요</b> · ${data.env}</div><div class="row2"><b>이런 오해를 받기도 해요</b> · ${data.misread}</div>`:"";
+  const intense=(m.band==="매우 높음"||m.band==="매우 낮음")?`<div class="row2" style="color:var(--mute)"><b>강도 안내</b> · 이 경향이 특히 뚜렷해, 강점도 주의점도 더 선명하게 드러날 수 있습니다.</div>`:"";
+  const rf=(k==="mid"&&data.reflect)?data.reflect:it.reflect, lead=k==="mid"?data.intro:LEAD[d][k];
+  const a=`<div class="dimcard"><div class="dh"><span class="t">${D.name}</span><span class="lv" style="color:${D.color}">· ${m.band} (${m.score})</span></div><div class="en">${D.eng}</div><div class="common">${COMMON[d]}</div></div>`;
+  const b=`<div class="dimcard"><div class="myhead" style="color:${D.color};border-top:0;padding-top:0;margin-top:0">나의 ${D.name} 척도 해석</div><div class="core">${lead}</div>${lens}<div class="row2"><b>강점</b> · ${data.strength}</div>${extra}${intense}<div class="rf">${rf}</div></div>`;
+  return [a,b];
+}
+function wait(ms){return new Promise(r=>setTimeout(r,ms));}
+function overlay(on,msg){
+  let o=document.getElementById("ovl");
+  if(on){ if(!o){o=document.createElement("div");o.id="ovl";document.body.appendChild(o);} o.textContent=msg||"만드는 중…"; o.style.display="flex"; }
+  else if(o){ o.style.display="none"; }
+}
+function dlCanvas(canvas,name){
+  return new Promise(res=>{
+    function viaURL(){ const a=document.createElement("a");a.href=canvas.toDataURL("image/png");a.download=name;document.body.appendChild(a);a.click();a.remove();res(); }
+    if(canvas.toBlob){
+      try{ canvas.toBlob(b=>{ if(!b){viaURL();return;} const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500);res(); },"image/png"); }
+      catch(e){ viaURL(); }
+    } else viaURL();
+  });
+}
+async function exportPages(mode){
   if(!lastResult)return;
-  buildReport();
-  if(typeof html2canvas==="undefined"){alert("이미지 저장 기능을 불러오지 못했어요. 인터넷 연결을 확인하거나 ‘PDF로 저장’을 이용해 주세요.");return;}
-  html2canvas(document.getElementById("report"),{scale:2,backgroundColor:"#ffffff"}).then(c=>{
-    const a=document.createElement("a");a.download="기질검사_결과.png";a.href=c.toDataURL("image/png");a.click();
-  }).catch(()=>alert("이미지를 만드는 중 문제가 생겼어요. ‘PDF로 저장’을 이용해 주세요."));
+  if(typeof html2canvas==="undefined"){alert("저장 기능(html2canvas)을 불러오지 못했어요. 인터넷 연결을 확인하고, 채팅 미리보기가 아니라 실제 사이트 주소에서 다시 시도해 주세요.");return;}
+  if(mode==="pdf" && (!window.jspdf || !window.jspdf.jsPDF)){alert("PDF 기능(jsPDF)을 불러오지 못했어요. 인터넷 연결을 확인하고 실제 사이트 주소에서 다시 시도해 주세요.");return;}
+  overlay(true, mode==="pdf"?"PDF 만드는 중…":"이미지 만드는 중…");
+  await wait(60);
+  try{
+    const measure=document.getElementById("measure"); measure.innerHTML=rptUnits().join("");
+    await wait(40);
+    const CH=860, items=[...measure.children]; const pages=[]; let cur=[],h=0;
+    items.forEach(el=>{const eh=el.offsetHeight+16; if(h+eh>CH&&cur.length){pages.push(cur);cur=[];h=0;} cur.push(el.outerHTML); h+=eh;});
+    if(cur.length)pages.push(cur);
+    const N=pages.length, host=document.getElementById("pages");
+    host.innerHTML=pages.map((u,i)=>`<div class="page"><div class="page-h"><span class="ph-l">기질 프로파일</span><span class="ph-r">TEMPERAMENT PROFILE</span></div><div class="page-c">${u.join("")}</div><div class="page-f"><span>기질 프로파일 결과 · 자기이해 리포트</span><span>${i+1} / ${N}</span></div></div>`).join("");
+    await wait(80);
+    const pels=[...host.children]; let pdf=null;
+    for(let i=0;i<pels.length;i++){
+      const c=await html2canvas(pels[i],{scale:2,backgroundColor:"#ffffff"});
+      if(mode==="png"){ await dlCanvas(c,"기질프로파일_"+(i+1)+".png"); await wait(400); }
+      else{ const J=window.jspdf.jsPDF; if(!pdf)pdf=new J("p","mm","a4"); if(i>0)pdf.addPage(); pdf.addImage(c.toDataURL("image/jpeg",0.92),"JPEG",0,0,210,297); }
+    }
+    if(mode==="pdf"&&pdf)pdf.save("기질프로파일.pdf");
+    host.innerHTML=""; measure.innerHTML="";
+    overlay(false);
+    if(mode==="png")alert(N+"장의 이미지를 저장했어요. 휴대폰은 ‘다운로드’ 폴더(또는 사파리 주소창의 다운로드 아이콘)를 확인해 주세요.");
+  }catch(e){ overlay(false); alert("저장 중 문제가 생겼어요: "+((e&&e.message)?e.message:e)); }
 }
-function savePDF(){ if(!lastResult)return; buildReport(); window.print(); }
+function saveImage(){ exportPages("png"); }
+function savePDF(){ exportPages("pdf"); }
 
 intro();
 </script>
