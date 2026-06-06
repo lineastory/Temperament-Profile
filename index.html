@@ -8,6 +8,14 @@
 <meta property="og:title" content="기질 프로파일">
 <meta property="og:description" content="나를 움직이는 네 가지 기질 · (주)알음다움">
 <meta property="og:type" content="website">
+<meta property="og:image" content="https://lineastory.github.io/Temperament-Profile/thumbnail.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://lineastory.github.io/Temperament-Profile/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="기질 프로파일">
+<meta name="twitter:description" content="나를 움직이는 네 가지 기질 · (주)알음다움">
+<meta name="twitter:image" content="https://lineastory.github.io/Temperament-Profile/thumbnail.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,380;0,9..144,500;1,9..144,400&display=swap" rel="stylesheet">
@@ -265,7 +273,7 @@ function intro(){
    <div class="dots reveal"><i style="background:var(--coral)"></i><i style="background:var(--blue)"></i><i style="background:var(--green)"></i><i style="background:var(--purple)"></i></div>
    <div class="kicker reveal">Temperament Profile · 기질 프로파일</div>
    <h1 class="reveal">나를 움직이는<br><em>네 가지 기질</em></h1>
-   <p class="lead reveal">자극추구 · 위험회피 · 사회적 민감성 · 인내력.<br>평소의 나를 떠올리며 답하면, 내 안에서 가장 뚜렷한 결부터 보여드립니다.</p>
+   <p class="lead reveal">자극추구 · 위험회피 · 사회적 민감성 · 인내력.<br>평소의 나를 떠올리며 답하면, 나를 가장 뚜렷하게 움직이는 기질부터 보여드립니다.</p>
    <div class="specs reveal">
      <div class="r"><span>소요 시간</span><span class="v">약 5분</span></div>
      <div class="r"><span>문항</span><span class="v">48 · 5점 척도</span></div>
@@ -273,7 +281,7 @@ function intro(){
    </div>
    <button class="btn solid reveal" id="start">검사 시작하기</button>
    <button class="mini" id="demo">예시 결과 미리보기</button>
-   <div class="anchor reveal"><div class="av">알</div><div class="nm">(주)알음다움<small>EAP 전문기업</small></div></div>
+   <div class="anchor reveal"><div class="nm"><small>EAP 전문기업</small>(주)알음다움</div></div>
    <p class="foot reveal">표준화 규준이 없는 자기이해 도구입니다. 결과는 우열이 아니라 ‘나를 이해하는 출발점’으로 읽어 주세요.</p>`;
   $("#start").onclick=()=>{queue=buildQueue();answers={};qi=0;quiz();};
   $("#demo").onclick=()=>{demoFill();result();};
