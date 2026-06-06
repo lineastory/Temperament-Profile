@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>기질 프로파일 · 리네아스토리</title>
+<title>기질 프로파일</title>
+<meta name="description" content="나를 움직이는 네 가지 기질 · (주)알음다움">
+<meta property="og:title" content="기질 프로파일">
+<meta property="og:description" content="나를 움직이는 네 가지 기질 · (주)알음다움">
+<meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,380;0,9..144,500;1,9..144,400&display=swap" rel="stylesheet">
@@ -429,7 +433,7 @@ function dimUnitParts(d,m){
   const intense=(m.band==="매우 높음"||m.band==="매우 낮음")?`<div class="row2" style="color:var(--mute)"><b>강도 안내</b> · 이 경향이 특히 뚜렷해, 강점도 주의점도 더 선명하게 드러날 수 있습니다.</div>`:"";
   const rf=(k==="mid"&&data.reflect)?data.reflect:it.reflect, lead=k==="mid"?data.intro:LEAD[d][k];
   const a=`<div class="dimcard"><div class="dh"><span class="t">${D.name}</span><span class="lv" style="color:${D.color}">· ${m.band} (${m.score})</span></div><div class="en">${D.eng}</div><div class="common">${COMMON[d]}</div></div>`;
-  const b=`<div class="dimcard"><div class="myhead" style="color:${D.color};border-top:0;padding-top:0;margin-top:0">나의 ${D.name} 척도 해석</div><div class="core">${lead}</div>${lens}<div class="row2"><b>강점</b> · ${data.strength}</div>${extra}${intense}<div class="rf">${rf}</div></div>`;
+  const b=`<div class="dimcard"><div class="myhead" style="color:${D.color};border-top:0;padding-top:0;margin-top:16px">나의 ${D.name} 척도 해석</div><div class="core">${lead}</div>${lens}<div class="row2"><b>강점</b> · ${data.strength}</div>${extra}${intense}<div class="rf">${rf}</div></div>`;
   return [a,b];
 }
 function wait(ms){return new Promise(r=>setTimeout(r,ms));}
