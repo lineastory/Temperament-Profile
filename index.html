@@ -184,11 +184,14 @@
   #imgmodal .im-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
   #imgmodal .im-title{font-size:17px;font-weight:700;color:#2B2A28;}
   #imgmodal .im-close{border:0;background:#F0EBE6;color:#2B2A28;font-size:14px;font-weight:600;padding:8px 16px;border-radius:10px;cursor:pointer;font-family:var(--sans);}
-  #imgmodal .im-tip{background:#FBF6F2;border:1px solid #F0E2DA;border-radius:12px;padding:11px 13px;font-size:13px;line-height:1.6;color:#6B635B;margin-bottom:16px;}
+  #imgmodal .im-tip{background:#FBEEE9;border:1.5px solid #E8C5BC;border-radius:12px;padding:13px 15px;margin-bottom:18px;}
+  #imgmodal .im-tip-main{font-size:14.5px;line-height:1.65;color:#9A4A3D;}
+  #imgmodal .im-tip-main b{color:#C0492F;font-weight:700;}
+  #imgmodal .im-tip-sub{font-size:12px;line-height:1.55;color:#A79E96;margin-top:8px;}
   #imgmodal .im-card{margin-bottom:22px;}
   #imgmodal .im-no{font-size:13px;font-weight:600;color:#9A9088;margin-bottom:7px;}
   #imgmodal .im-img{width:100%;height:auto;border:1px solid #ECE6E0;border-radius:8px;display:block;}
-  #imgmodal .im-dl{margin-top:9px;width:100%;border:0;background:#D9776A;color:#fff;font-size:15px;font-weight:600;padding:12px;border-radius:11px;cursor:pointer;font-family:var(--sans);}
+  #imgmodal .im-dl{margin-top:9px;width:100%;border:1px solid #E4DDD5;background:#F4F0EB;color:#9A9088;font-size:13px;font-weight:600;padding:10px;border-radius:10px;cursor:pointer;font-family:var(--sans);}
 </style>
 </head>
 <body>
@@ -437,8 +440,8 @@ function showImageGallery(urls){
   const old=document.getElementById("imgmodal"); if(old)old.remove();
   const m=document.createElement("div"); m.id="imgmodal";
   const head=`<div class="im-head"><div class="im-title">이미지 저장</div><button class="im-close" type="button">닫기</button></div>`;
-  const tip=`<div class="im-tip">📱 휴대폰은 아래 이미지를 <b>길게 눌러</b> ‘사진에 저장’을 선택하면 갤러리에 저장돼요.<br>💻 PC·일부 기기는 ‘이 페이지 저장’ 버튼으로 받을 수 있어요.</div>`;
-  const body=urls.map((u,i)=>`<div class="im-card"><div class="im-no">${i+1} / ${urls.length} 페이지</div><img src="${u}" alt="${i+1}페이지" class="im-img"><button class="im-dl" type="button" data-i="${i}">이 페이지 저장</button></div>`).join("");
+  const tip=`<div class="im-tip"><div class="im-tip-main">📱 <b>휴대폰은 아래 이미지를 길게 눌러</b> ‘사진에 저장’을 선택하면 갤러리에 저장돼요.</div><div class="im-tip-sub">💻 아래 ‘PC에서 이미지 저장’ 버튼은 컴퓨터·일부 기기에서 받을 때 쓰세요.</div></div>`;
+  const body=urls.map((u,i)=>`<div class="im-card"><div class="im-no">${i+1} / ${urls.length} 페이지</div><img src="${u}" alt="${i+1}페이지" class="im-img"><button class="im-dl" type="button" data-i="${i}">PC에서 이미지 저장</button></div>`).join("");
   m.innerHTML=`<div class="im-wrap">${head}${tip}<div class="im-list">${body}</div></div>`;
   document.body.appendChild(m);
   m.querySelector(".im-close").onclick=()=>m.remove();
