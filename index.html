@@ -58,6 +58,12 @@
   .specs .r .v{font-family:var(--serif);color:var(--ink);}
   .btn{display:block;width:100%;text-align:center;border:0;border-radius:14px;padding:17px;font-family:var(--sans);font-size:15.5px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .2s;}
   .btn.solid{background:var(--ink);color:#fff;box-shadow:0 12px 26px -12px rgba(40,35,25,.55);}
+  .namebox{margin-bottom:14px;}
+  .namebox label{display:block;font-size:12.5px;font-weight:600;color:var(--mute);margin-bottom:7px;}
+  .namebox input{width:100%;border:1.5px solid var(--line);border-radius:13px;padding:14px 16px;font-family:var(--sans);font-size:15px;color:var(--ink);background:#fff;outline:none;transition:border-color .16s;}
+  .namebox input:focus{border-color:var(--coral);}
+  .namebox input::placeholder{color:#cfc8bd;}
+  .namebox .nameerr{display:none;font-size:12px;color:var(--coral);margin-top:7px;padding-left:2px;}
   .btn.accent{background:var(--coral);color:#fff;}
   .btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line);}
   .btn:hover{transform:translateY(-1px);}
@@ -186,7 +192,7 @@
   #pages{position:absolute;left:-99999px;top:0;}
   .page{width:794px;height:1123px;background:#fff;box-sizing:border-box;padding:40px 48px 28px;display:flex;flex-direction:column;color:#2B2A28;font-family:var(--sans);}
   .page-h{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #D9776A;padding-bottom:8px;margin-bottom:14px;}
-  .page-h .ph-l{font-size:16px;font-weight:700;color:#D9776A;letter-spacing:-.01em;}
+  .page-h .ph-l{font-size:16px;font-weight:700;color:#8a8178;letter-spacing:-.01em;}
   .page-h .ph-r{font-size:10.5px;color:#8a8178;letter-spacing:.16em;}
   .page-c{flex:1;overflow:hidden;}
   .page-f{border-top:1px solid #ece7df;padding-top:8px;margin-top:12px;font-size:10px;color:#a9a39a;letter-spacing:.02em;}
@@ -253,7 +259,7 @@ const THIRD={
 /* ===================== LOGIC ===================== */
 const $=s=>document.querySelector(s);
 const root=$("#root");
-let queue=[], answers={}, qi=0, lastResult=null;
+let queue=[], answers={}, qi=0, lastResult=null, userName="";
 
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function buildQueue(){
@@ -279,12 +285,24 @@ function intro(){
      <div class="r"><span>문항</span><span class="v">48 · 5점 척도</span></div>
      <div class="r"><span>근거</span><span class="v">TCI 기질 4차원</span></div>
    </div>
+   <div class="namebox reveal">
+     <label for="uname">이름</label>
+     <input type="text" id="uname" placeholder="결과지에 표시할 이름을 적어 주세요" maxlength="20" autocomplete="off" value="${userName.replace(/"/g,'&quot;')}">
+     <div class="nameerr" id="nameerr">이름을 입력해 주세요.</div>
+   </div>
    <button class="btn solid reveal" id="start">검사 시작하기</button>
    <button class="mini" id="demo">예시 결과 미리보기</button>
    <div class="anchor reveal"><div class="nm"><small>EAP 전문기업</small>(주)알음다움</div></div>
    <p class="foot reveal">표준화 규준이 없는 자기이해 도구입니다. 결과는 우열이 아니라 ‘나를 이해하는 출발점’으로 읽어 주세요.</p>`;
-  $("#start").onclick=()=>{queue=buildQueue();answers={};qi=0;quiz();};
-  $("#demo").onclick=()=>{demoFill();result();};
+  const nameInput=$("#uname");
+  $("#start").onclick=()=>{
+    const v=(nameInput.value||"").trim();
+    if(!v){ $("#nameerr").style.display="block"; nameInput.focus(); return; }
+    userName=v; queue=buildQueue();answers={};qi=0;quiz();
+  };
+  nameInput.addEventListener("input",()=>{ if(nameInput.value.trim())$("#nameerr").style.display="none"; });
+  nameInput.addEventListener("keydown",e=>{ if(e.key==="Enter")$("#start").click(); });
+  $("#demo").onclick=()=>{ userName=(nameInput.value||"").trim()||"예시"; demoFill();result();};
 }
 function demoFill(){answers={};ITEMS.NS.forEach((t,i)=>answers["NS"+i]=[5,5,4,5,4,4,4,5,4,4,4,3][i]);ITEMS.HA.forEach((t,i)=>answers["HA"+i]=[2,2,3,2,2,2,3,2,3,2,3,2][i]);ITEMS.RD.forEach((t,i)=>answers["RD"+i]=3);ITEMS.P.forEach((t,i)=>answers["P"+i]=[4,4,4,4,4,4,4,4,3,4,4,4][i]);}
 
@@ -313,7 +331,7 @@ function result(){
   stepCur="summary";
   root.innerHTML=`
    <div class="rtop"><span class="k">Your Temperament</span><button class="restart" id="restart">다시하기</button></div>
-   <div class="rh">내 기질 프로파일</div>
+   <div class="rh">${userName?userName+" 님의 기질 프로파일":"내 기질 프로파일"}</div>
    <div class="rsub">네 기질 중 무엇이 나를 가장 뚜렷하게 움직이는지</div>
    <div class="steps">
      <button data-s="summary" class="on">요약</button>
@@ -482,7 +500,8 @@ async function exportPages(mode){
     if(document.fonts&&document.fonts.ready){try{await document.fonts.ready;}catch(e){}}
     await wait(60);
     const host=document.getElementById("pages"); host.innerHTML="";
-    const HDR='<div class="page-h"><span class="ph-l">기질 프로파일</span><span class="ph-r">TEMPERAMENT PROFILE</span></div>';
+    const nameTag=userName?userName+" 님의 기질 프로파일":"기질 프로파일";
+    const HDR='<div class="page-h"><span class="ph-l">'+nameTag+'</span><span class="ph-r">TEMPERAMENT PROFILE</span></div>';
     const FTR='<div class="page-f"><div class="pf-row"><span>기질 프로파일 결과 · 자기이해 리포트</span><span class="pn"></span></div><div class="pf-cr">© 2026 (주)알음다움. All rights reserved.</div></div>';
     function newPage(){const p=document.createElement("div");p.className="page";p.innerHTML=HDR+'<div class="page-c"></div>'+FTR;host.appendChild(p);return p.querySelector(".page-c");}
     const mk=h=>{const t=document.createElement("div");t.innerHTML=h;return t.firstElementChild;};
